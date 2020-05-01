@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sld>
+  <accelerator name="nw2" desc="Accelerator NW2" data_size="4" device_id="036" hls_tool="vivado_hls">
+    <param name="BLEN" desc="BLEN" />
+    <param name="ALEN" desc="ALEN" />
+  </accelerator>
+</sld>
