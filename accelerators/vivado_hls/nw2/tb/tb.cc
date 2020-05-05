@@ -102,26 +102,23 @@ int main(int argc, char **argv) {
    //for(int i = 0; i < BLEN; i++)
       //seqB[i] = sequenceB[i];
 
-    for(unsigned i = 0; i < 1; i++)
-        for(unsigned j = 0; j < ALEN + BLEN; j++)
-            inbuff[i * in_words_adj + j] = (word_t) j;
 
-    //for(unsigned i = 0; i < dma_in_size; i++)
-    //	for(unsigned k = 0; k < VALUES_PER_WORD; k++)
-    //	    mem[i].word[k] = inbuff[i * VALUES_PER_WORD + k];
+    for(unsigned i = 0; i < dma_in_size; i++)
+      for(unsigned k = 0; k < VALUES_PER_WORD; k++)
+	mem[i].word[k] = inbuff[i * VALUES_PER_WORD + k];
 
-    for(unsigned i = 0; i < ALEN; i++)
-    	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
-                    inbuffA[i] = inbuff[i];
-    	    mem[i].word[k] = inbuffA[i * VALUES_PER_WORD + k];
-     }
+    // for(unsigned i = 0; i < ALEN; i++)
+    // 	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
+    //                 inbuffA[i] = inbuff[i];
+    // 	    mem[i].word[k] = inbuffA[i * VALUES_PER_WORD + k];
+    //  }
 
-     for(unsigned i = 0; i < BLEN; i++)
-    	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
-                    inbuffB[i] = inbuff[i + ALEN];
-    	    mem[i + ALEN].word[k] = inbuffB[i * VALUES_PER_WORD + k]; 
-      }
-
+     // for(unsigned i = 0; i < BLEN; i++)
+     // 	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
+     //                inbuffB[i] = inbuff[i + ALEN];
+     // 	    mem[i + ALEN].word[k] = inbuffB[i * VALUES_PER_WORD + k]; 
+     //  }
+ 
 
 
     // Set golden output
@@ -151,44 +148,57 @@ int main(int argc, char **argv) {
 
     fclose(fileB);  
 
-    for(unsigned i = 0; i < 1; i++)
-        for(unsigned j = 0; j < 2 * (ALEN + BLEN); j++){
-            outbuff_gold[i * out_words_adj + j] = (word_t) j;
-    }
-   
-
     // Call the TOP function
-    top(mem, mem,
-        /* <<--args-->> */
-	 	 ALEN,
-	 	 BLEN,
-        load, store);
+    top(mem, mem, ALEN, BLEN, load, store);
+
+    // // De-comment to test the testbench without calling top.
+    // // Comment top() of you de-comment this.
+    // for(unsigned i = 0; i < dma_out_size; i++)
+    //   for(unsigned k = 0; k < VALUES_PER_WORD; k++)
+    // 	mem[i + dma_in_size].word[k] = outbuff_gold[i * VALUES_PER_WORD + k];
 
     // Validate
     uint32_t out_offset = dma_in_size;
-    for(unsigned i = 0; i < ALEN + BLEN; i++)
-	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
-                    outbuffA[i] = outbuff[i];
-	    outbuffA[i * VALUES_PER_WORD + k] = mem[out_offset + i].word[k];
-    }
-
-    for(unsigned i = 0; i < ALEN + BLEN; i++)
-	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
-                    outbuffB[i] = outbuff[i + ALEN + BLEN];
-	    outbuffB[i * VALUES_PER_WORD + k] = mem[out_offset + i + ALEN +BLEN].word[k];
-     }
+    for(unsigned i = 0; i < dma_out_size; i++)
+      for(unsigned k = 0; k < VALUES_PER_WORD; k++)
+	outbuff[i * VALUES_PER_WORD + k] = mem[out_offset + i].word[k];
 
     int errors = 0;
-
     for(unsigned i = 0; i < 1; i++)
-        for(unsigned j = 0; j < 2 * (ALEN + BLEN); j++)
-	    if (outbuff[i * out_words_adj + j] != outbuff_gold[i * out_words_adj + j])
-		errors++;
+      for(unsigned j = 0; j < 2 * (ALEN + BLEN); j++)
+	if (outbuff[i * out_words_adj + j] != outbuff_gold[i * out_words_adj + j])
+	  errors++;
 
     if (errors)
-	std::cout << "Test FAILED with " << errors << " errors." << std::endl;
+      std::cout << "Test FAILED with " << errors << " errors." << std::endl;
     else
-	std::cout << "Test PASSED." << std::endl;
+      std::cout << "Test PASSED." << std::endl;
+
+    // // Validate
+    // uint32_t out_offset = dma_in_size;
+    // for(unsigned i = 0; i < ALEN + BLEN; i++)
+    // 	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
+    //                 outbuffA[i] = outbuff[i];
+    // 	    outbuffA[i * VALUES_PER_WORD + k] = mem[out_offset + i].word[k];
+    // }
+
+    // for(unsigned i = 0; i < ALEN + BLEN; i++)
+    // 	for(unsigned k = 0; k < VALUES_PER_WORD; k++){
+    //                 outbuffB[i] = outbuff[i + ALEN + BLEN];
+    // 	    outbuffB[i * VALUES_PER_WORD + k] = mem[out_offset + i + ALEN +BLEN].word[k];
+    //  }
+
+    // int errors = 0;
+
+    // for(unsigned i = 0; i < 1; i++)
+    //     for(unsigned j = 0; j < 2 * (ALEN + BLEN); j++)
+    // 	    if (outbuff[i * out_words_adj + j] != outbuff_gold[i * out_words_adj + j])
+    // 		errors++;
+
+    // if (errors)
+    // 	std::cout << "Test FAILED with " << errors << " errors." << std::endl;
+    // else
+    // 	std::cout << "Test PASSED." << std::endl;
 
     // Free memory
 
